@@ -1,0 +1,24 @@
+Bootstrap: docker
+From: ubuntu:22.04
+%post
+    apt-get update && \
+        apt-get -y install sudo make g++ unzip software-properties-common \
+        cmake git wget vim apt-utils libmpfr-dev libssl-dev libgmp-dev
+
+%files 
+    EzPC/ ezpc_dir
+
+%post
+    cd /ezpc_dir
+#    ./setup_env_and_build.sh quick
+
+    cd SCI && mkdir build
+    cd build
+    cmake -DCMAKE_INSTALL_PREFIX=./install .. -DCMAKE_C_FLAGS='-O3' -DBUILD_TESTS=ON -DBUILD_NETWORKS=ON -DNO_REVEAL_OUTPUT=ON
+    cmake --build . --target install --parallel
+
+    cd bin
+
+%runscript
+    cd sci.sif/ezpc_dir/SCI/build/bin
+    ./relu-OT r=1 & ./relu-OT r=2
