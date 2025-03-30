@@ -16,7 +16,6 @@ if (NOT SEAL_FOUND)
             WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/extern/SEAL/native/src")
     execute_process(COMMAND ${CMAKE_COMMAND} --build . --target install
         WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/extern/SEAL/native/src")
-    message(STATUS "finished --build . --trget install")
     find_package(SEAL 3.3.2 EXACT REQUIRED PATHS "${PROJECT_SOURCE_DIR}/build/" NO_DEFAULT_PATH)
 endif()
 
