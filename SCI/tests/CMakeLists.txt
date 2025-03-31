@@ -25,6 +25,7 @@ add_test_OT(sigmoid)
 add_test_OT(exp)
 add_test_OT(tanh)
 add_test_OT(sqrt)
+add_test_OT(millionaire)
 
 add_test_HE(relu)
 add_test_HE(maxpool)
