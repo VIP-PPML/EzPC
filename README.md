@@ -12,7 +12,7 @@ if that is unnecessary.
 
 To run the apptainer: `apptainer run sci.sif`
 
-To open an apptainer shell: `apptainer shell --writable sci.sif`
+To open an apptainer shell: `apptainer shell --writable sci.sif` (writable can only be used if you used the --sandbox flag when building)
 
 ## Testing
 ### Millionaire's Protocol
