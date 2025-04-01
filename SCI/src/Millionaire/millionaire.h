@@ -156,34 +156,42 @@ public:
     if (party == sci::ALICE) {
       uint8_t *
           *leaf_ot_messages; // (num_digits * num_cmps) X beta_pow (=2^beta)
-      leaf_ot_messages = new uint8_t *[num_digits * num_cmps];
+      // leaf_ot_messages = new uint8_t *[num_digits * num_cmps];
+
+      // Allocate Unified Memory
+      cudaMallocManaged(&leaf_ot_messages, num_digits * num_cmps * sizeof(uint8_t*));
       for (int i = 0; i < num_digits * num_cmps; i++)
-        leaf_ot_messages[i] = new uint8_t[beta_pow];
+        cudaMallocManaged(&leaf_ot_messages[i], beta_pow * sizeof(uint8_t));
+//        leaf_ot_messages[i] = new uint8_t[beta_pow];
 
       // Set Leaf OT messages
       triple_gen->prg->random_bool((bool *)leaf_res_cmp, num_digits * num_cmps);
       triple_gen->prg->random_bool((bool *)leaf_res_eq, num_digits * num_cmps);
+      int blockSize = 256;
+      int numBlocks = (beta_pow + blockSize - 1) / blockSize;
       for (int i = 0; i < num_digits; i++) {
         for (int j = 0; j < num_cmps; j++) {
           if (i == 0) {
-            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            set_leaf_ot_messages<<<numBlocks, blockSize>>>>(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j], 0,
                                  greater_than, false);
           } else if (i == (num_digits - 1) && (r > 0)) {
 #ifdef WAN_EXEC
-            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            set_leaf_ot_messages<<<numBlocks, blockSize>>>>(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j],
                                  leaf_res_eq[i * num_cmps + j], greater_than);
 #else
-            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            // Need a different number of blocks b/c N is different
+            numBlocks = ((1 << r) + blockSize - 1) / blockSize;
+            set_leaf_ot_messages<<<numBlocks, blockSize>>>>(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], 1 << r,
                                  leaf_res_cmp[i * num_cmps + j],
                                  leaf_res_eq[i * num_cmps + j], greater_than);
 #endif
           } else {
-            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            set_leaf_ot_messages<<<numBlocks, blockSize>>>>(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j],
                                  leaf_res_eq[i * num_cmps + j], greater_than);
@@ -279,10 +287,14 @@ public:
     delete[] leaf_res_eq;
   }
 
+  __global__
   void set_leaf_ot_messages(uint8_t *ot_messages, uint8_t digit, int N,
                             uint8_t mask_cmp, uint8_t mask_eq,
                             bool greater_than, bool eq = true) {
-    for (int i = 0; i < N; i++) {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+
+    for (int i = index; i < N; i+= stride) {
       if (greater_than) {
         ot_messages[i] = ((digit > i) ^ mask_cmp);
       } else {
@@ -293,6 +305,7 @@ public:
       }
     }
   }
+
 
   /**************************************************************************************************
    *                         AND computation related functions

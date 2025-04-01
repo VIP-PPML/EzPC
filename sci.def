@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: ubuntu:22.04
+From: nvidia/cuda:12.3.2-devel-ubuntu22.04
 %post
     apt-get update && \
         apt-get -y install sudo make g++ unzip software-properties-common \
@@ -10,7 +10,6 @@ From: ubuntu:22.04
 
 %post
     cd /ezpc_dir
-#    ./setup_env_and_build.sh quick
 
     cd SCI && mkdir build
     cd build
