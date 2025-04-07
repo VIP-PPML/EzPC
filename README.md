@@ -16,4 +16,4 @@ To open an apptainer shell: `apptainer shell --writable sci.sif` (writable can o
 
 ## Testing
 ### Millionaire's Protocol
-Run `./millionaire-OT 1 & ./millionaire-OT 2` inside of SCI/build/bin to test the millionaire's protocol
+`cd sci.sif` and run `./millionaire-OT 1 & ./millionaire-OT 2` inside of ezpc_dir/SCI/build/bin to test the millionaire's protocol
