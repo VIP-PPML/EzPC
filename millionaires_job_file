@@ -4,7 +4,7 @@
 # Change to the directory from which you originally submitted this job.
 cd $SLURM_SUBMIT_DIR
 
-apptainer exec --writable sci-gpu.sif /bin/bash -c "
+apptainer exec --nv --writable sci-gpu.sif /bin/bash -c "
   cd /ezpc_dir/SCI/build/bin || exit 1
   ./millionaire-OT 1 & ./millionaire-OT 2
 "
