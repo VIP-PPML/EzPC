@@ -30,6 +30,13 @@ enum TripleGenMethod {
   _8KKOT,         // 2 Correlated Bit Triples from 1oo8 KKOT
 };
 
+extern "C" void compute_bob_ot_gpu(
+    const uint8_t* a,
+    const uint8_t* b,
+    uint8_t* ot_selection,
+    int num_triples
+);
+
 class Triple {
 public:
   bool packed;
@@ -207,13 +214,16 @@ public:
       case sci::BOB: {
         uint8_t *ot_selection = new uint8_t[(size_t)num_triples / 2];
         uint8_t *ot_result = new uint8_t[(size_t)num_triples / 2];
+	compute_bob_ot_gpu(a, b, ot_selection, num_triples);
+	/*
         for (int i = 0; i < num_triples; i += 2) {
           ot_selection[i / 2] =
               (b[i + 1] << 3) | (a[i + 1] << 2) | (b[i] << 1) | a[i];
         }
+	*/
         // otpack->kkot_16->recv(ot_result, ot_selection, num_triples/2, 2);
         otpack->kkot[3]->recv(ot_result, ot_selection, num_triples / 2, 2);
-        for (int i = 0; i < num_triples; i += 2) {
+	for (int i = 0; i < num_triples; i += 2) {
           c[i] = ot_result[i / 2] & 1;
           c[i + 1] = ot_result[i / 2] >> 1;
         }
