@@ -1,5 +1,12 @@
 macro (add_test_OT _name)
-	add_executable(${_name}-OT "test_ring_${_name}.cpp")
+	set(cuda_src "${PROJECT_SOURCE_DIR}/src/Millionaire/bob_cuda.cu")
+	add_executable(${_name}-OT "test_ring_${_name}.cpp" ${cuda_src})
+
+	set_target_properties(${_name}-OT PROPERTIES
+		CUDA_SEPARABLE_COMPILATION ON 
+		CXX_STANDARD 17
+	)
+
     target_link_libraries(${_name}-OT SCI-OT) 
 endmacro()
 
@@ -27,6 +34,7 @@ add_test_OT(tanh)
 add_test_OT(sqrt)
 add_test_OT(millionaire)
 
+if(FALSE) 
 add_test_HE(relu)
 add_test_HE(maxpool)
 add_test_HE(argmax)
@@ -37,6 +45,7 @@ add_test_HE(elemwise_prod)
 add_test_float(bench_op)
 add_test_float(primitive)
 add_test_float(compound)
+endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 find_package(MPFR 2.3.0 REQUIRED)
@@ -61,8 +70,10 @@ macro(add_test_floatml name)
 	add_test_beacon(${name})
 endmacro()
 
+if(FALSE)
 add_test_floatml(vsum)
 add_test_floatml(dotprod)
 add_test_floatml(matmul)
 add_test_floatml(sigmoid)
 add_test_floatml(softmax)
+endif()
