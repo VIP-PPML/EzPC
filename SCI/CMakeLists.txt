@@ -3,6 +3,7 @@ cmake_minimum_required (VERSION 3.3.2)
 project (SCI)
 set(NAME "SCI")
 
+enable_language(CUDA)
 
 option(NO_REVEAL_OUTPUT "Only output secret shares after 2PC" OFF)
 message(STATUS "Option: NO_REVEAL_OUTPUT = ${NO_REVEAL_OUTPUT}")

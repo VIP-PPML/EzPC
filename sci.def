@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: ubuntu:22.04
+From: nvidia/cuda:12.6.0-devel-ubuntu22.04
 %post
     apt-get update && \
         apt-get -y install sudo make g++ unzip software-properties-common \
@@ -14,7 +14,7 @@ From: ubuntu:22.04
 
     cd SCI && mkdir build
     cd build
-    cmake -DCMAKE_INSTALL_PREFIX=./install .. -DCMAKE_C_FLAGS='-O3' -DBUILD_TESTS=ON -DBUILD_NETWORKS=ON -DNO_REVEAL_OUTPUT=ON
+    cmake -DCMAKE_INSTALL_PREFIX=./install .. -DCMAKE_C_FLAGS='-O3' -DCMAKE_CUDA_FLAGS='-O3' -DBUILD_TESTS=ON -DBUILD_NETWORKS=ON -DNO_REVEAL_OUTPUT=ON
     cmake --build . --target install --parallel
 
     cd bin

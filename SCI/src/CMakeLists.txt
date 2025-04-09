@@ -1,4 +1,5 @@
 # set(CMAKE_FIND_DEBUG_MODE 1)
+enable_language(CUDA)
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
 find_package(Eigen3 3.3 QUIET NO_MODULE PATHS "${PROJECT_SOURCE_DIR}/extern/eigen/build" NO_DEFAULT_PATH)
@@ -45,10 +46,15 @@ target_include_directories(SCI-common
 )
 
 add_library(SCI-OT library_fixed_uniform.cpp library_fixed.cpp
-    globals.cpp cleartext_library_fixed.cpp)
-add_library(SCI-HE library_fixed_uniform.cpp globals.cpp)
-add_library(SCI-SecfloatML library_float_common.cpp library_float_secfloat.cpp globals_float.cpp cleartext_library_float.cpp)
-add_library(SCI-Beacon library_float_common.cpp library_float_beacon.cpp globals_float.cpp cleartext_library_float.cpp)
+	globals.cpp cleartext_library_fixed.cpp Millionaire/bob_cuda.cu)
+add_library(SCI-HE library_fixed_uniform.cpp globals.cpp Millionaire/bob_cuda.cu)
+add_library(SCI-SecfloatML library_float_common.cpp library_float_secfloat.cpp globals_float.cpp cleartext_library_float.cpp Millionaire/bob_cuda.cu)
+add_library(SCI-Beacon library_float_common.cpp library_float_beacon.cpp globals_float.cpp cleartext_library_float.cpp Millionaire/bob_cuda.cu)
+
+set_target_properties(SCI-OT PROPERTIES LINKER_LANGUAGE CUDA) 
+set_target_properties(SCI-HE PROPERTIES LINKER_LANGUAGE CUDA)
+set_target_properties(SCI-SecfloatML PROPERTIES LINKER_LANGUAGE CUDA)
+set_target_properties(SCI-Beacon PROPERTIES LINKER_LANGUAGE CUDA)
 
 target_link_libraries(SCI-OT PUBLIC SCI-common SCI-LinearOT SCI-GC
     SCI-Math SCI-BuildingBlocks SCI-FloatingPoint Eigen3::Eigen)
