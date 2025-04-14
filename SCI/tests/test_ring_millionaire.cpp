@@ -2,8 +2,9 @@
 #include "OT/emp-ot.h"
 #include "utils/emp-tool.h"
 #include <iostream>
+#include <chrono>
 
-void test_millionaire_protocol(uint64_t alice_value, uint64_t bob_value, int party);
+long long int test_millionaire_protocol(uint64_t alice_value, uint64_t bob_value, int party);
 
 int main(int argc, char **argv) {
     if (argc != 2) {
@@ -12,18 +13,28 @@ int main(int argc, char **argv) {
     }
     int party = atoi(argv[1]);
 
+    int num_runs = 5;
+    long long int total_time = 0;
+
     // Run the millionaires test with different values for Alice and Bob
-    test_millionaire_protocol(2, 3, party);
-    test_millionaire_protocol(123456789123456789, 123456789123456788, party);
-    test_millionaire_protocol(5, 18000000000000000000, party);
-    test_millionaire_protocol(16000000000000000000, 54, party);
-    test_millionaire_protocol(4193213593, 6002221524, party);
+    total_time += test_millionaire_protocol(2, 3, party);
+    total_time += test_millionaire_protocol(123456789123456789, 123456789123456788, party);
+    total_time += test_millionaire_protocol(5, 18000000000000000000, party);
+    total_time += test_millionaire_protocol(16000000000000000000, 54, party);
+    total_time += test_millionaire_protocol(4193213593, 6002221524, party);
+
+    if (party == sci::ALICE) {
+      std::cout << "Average runtime: " << total_time/num_runs << " ms" << std::endl;
+    }
 
     return 0;
 }
 
-void test_millionaire_protocol(uint64_t alice_value, uint64_t bob_value, int party) {
+long long int test_millionaire_protocol(uint64_t alice_value, uint64_t bob_value, int party) {
     int port = 12345;
+
+    // start timer
+    auto start = std::chrono::high_resolution_clock::now();
 
     sci::IOPack *iopack = new sci::IOPack(party, port);
     sci::OTPack *otpack = new sci::OTPack(iopack, party);
@@ -41,6 +52,10 @@ void test_millionaire_protocol(uint64_t alice_value, uint64_t bob_value, int par
         mil_protocol.compare(&bob_result, &bob_value, 16, 64);
     }
 
+    // end timer
+    auto end = std::chrono::high_resolution_clock::now();
+    auto time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
     // Synchronize to ensure both parties have completed the protocol
     iopack->io->flush();
 
@@ -56,6 +71,7 @@ void test_millionaire_protocol(uint64_t alice_value, uint64_t bob_value, int par
     // Output and check results
     uint8_t xor_result;
     if (party == sci::ALICE) {
+      std::cout << time_elapsed.count() << " ms" << std::endl;
       xor_result = alice_result ^ bob_result;
       if (xor_result) {
         std::cout << "Alice > Bob" << std::endl;
@@ -78,5 +94,5 @@ void test_millionaire_protocol(uint64_t alice_value, uint64_t bob_value, int par
     // Clean up
     delete iopack;
     delete otpack;
-
+    return time_elapsed.count();
 }
