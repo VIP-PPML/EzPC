@@ -4,7 +4,15 @@
 # Change to the directory from which you originally submitted this job.
 cd $SLURM_SUBMIT_DIR
 
-apptainer exec --nv --writable sci-gpu.sif /bin/bash -c "
-  cd /ezpc_dir/SCI/build/bin || exit 1
-  ./millionaire-OT 1 & ./millionaire-OT 2
+apptainer exec --nv --writable \
+  --bind "$(pwd)/SCI/src":/ezpc_dir/SCI/src \
+  --bind "$(pwd)/SCI/tests":/ezpc_dir/SCI/tests \
+  sci-gpu.sif /bin/bash -c "
+    set -e
+
+    cd /ezpc_dir/SCI/build || { echo 'Failed to cd to build'; exit 1; }
+    make millionaire-OT || { echo 'Build failed'; exit 1; }
+
+    cd /ezpc_dir/SCI/build/bin || { echo 'Failed to cd to bin'; exit 1; }
+    ./millionaire-OT 1 & ./millionaire-OT 2
 "
