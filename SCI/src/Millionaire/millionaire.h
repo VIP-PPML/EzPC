@@ -26,14 +26,10 @@ SOFTWARE.
 #include "utils/emp-tool.h"
 #include <cmath>
 #include <omp.h>
+#include <iostream>
 
 #define MILL_PARAM 4
 #define WAN_EXEC
-
-extern "C" void execute_set_leaf(int num_cmps, uint8_t *ot_messages,
-                                 uint8_t digit, int N,
-                                 uint8_t mask_cmp, uint8_t mask_eq,
-                                 bool greater_than, bool eq = true);
 
 class MillionaireProtocol {
 public:
@@ -81,6 +77,7 @@ public:
   void compare(uint8_t *res, uint64_t *data, int num_cmps, int bitlength,
                bool greater_than = true, bool equality = false,
                int radix_base = MILL_PARAM) {
+    std::cout << "Starting millionaire comparison for " << num_cmps << " comparisons" << std::endl;
     configure(bitlength, radix_base);
 
     if (bitlength <= beta) {
@@ -101,11 +98,13 @@ public:
             }
           }
         }
+        std::cout << "Party 1: Performing OT send for " << num_cmps << " comparisons" << std::endl;
         if (bitlength > 1) {
           otpack->kkot[bitlength - 1]->send(leaf_messages, num_cmps, 1);
         } else {
           otpack->iknp_straight->send(leaf_messages, num_cmps, 1);
         }
+        std::cout << "Party 1: Finished OT send" << std::endl;
 
         for (int i = 0; i < num_cmps; i++)
           delete[] leaf_messages[i];
@@ -115,11 +114,13 @@ public:
         for (int i = 0; i < num_cmps; i++) {
           choice[i] = data[i] & mask;
         }
+        std::cout << "Party 2: Performing OT recv for " << num_cmps << " comparisons" << std::endl;
         if (bitlength > 1) {
           otpack->kkot[bitlength - 1]->recv(res, choice, num_cmps, 1);
         } else {
           otpack->iknp_straight->recv(res, choice, num_cmps, 1);
         }
+        std::cout << "Party 2: Finished OT recv" << std::endl;
 
         delete[] choice;
       }
@@ -171,44 +172,27 @@ public:
       for (int i = 0; i < num_digits; i++) {
         for (int j = 0; j < num_cmps; j++) {
           if (i == 0) {
-            execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
-                             digits[i * num_cmps + j], beta_pow,
-                             leaf_res_cmp[i * num_cmps + j], 0,
-                             greater_than, false);
-/*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j], 0,
-                                 greater_than, false); */
-
+                                 greater_than, false);
           } else if (i == (num_digits - 1) && (r > 0)) {
 #ifdef WAN_EXEC
-            execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
-                             digits[i * num_cmps + j], beta_pow,
-                             leaf_res_cmp[i * num_cmps + j],
-                             leaf_res_eq[i * num_cmps + j], greater_than);
-/*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j],
-                                 leaf_res_eq[i * num_cmps + j], greater_than);*/
+                                 leaf_res_eq[i * num_cmps + j], greater_than);
 #else
-            execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
-                             digits[i * num_cmps + j], 1 << r,
-                             leaf_res_cmp[i * num_cmps + j],
-                             leaf_res_eq[i * num_cmps + j], greater_than);
-/*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], 1 << r,
                                  leaf_res_cmp[i * num_cmps + j],
-                                 leaf_res_eq[i * num_cmps + j], greater_than);*/
+                                 leaf_res_eq[i * num_cmps + j], greater_than);
 #endif
           } else {
-            execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
-                             digits[i * num_cmps + j], beta_pow,
-                             leaf_res_cmp[i * num_cmps + j],
-                             leaf_res_eq[i * num_cmps + j], greater_than);
-/*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j],
-                                 leaf_res_eq[i * num_cmps + j], greater_than);*/
+                                 leaf_res_eq[i * num_cmps + j], greater_than);
           }
         }
       }

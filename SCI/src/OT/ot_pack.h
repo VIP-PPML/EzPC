@@ -65,24 +65,34 @@ public:
   }
 
   void SetupBaseOTs() {
+    std::cout << "Setting up Base OTs for party " << party << std::endl;
     switch (party) {
     case 1:
+      std::cout << "Party 1: Setting up kkot[0] send" << std::endl;
       kkot[0]->setup_send();
+      std::cout << "Party 1: Setting up iknp_straight send" << std::endl;
       iknp_straight->setup_send();
+      std::cout << "Party 1: Setting up iknp_reversed recv" << std::endl;
       iknp_reversed->setup_recv();
       for (int i = 1; i < KKOT_TYPES; i++) {
+        std::cout << "Party 1: Setting up kkot[" << i << "] send" << std::endl;
         kkot[i]->setup_send();
       }
       break;
     case 2:
+      std::cout << "Party 2: Setting up kkot[0] recv" << std::endl;
       kkot[0]->setup_recv();
+      std::cout << "Party 2: Setting up iknp_straight recv" << std::endl;
       iknp_straight->setup_recv();
+      std::cout << "Party 2: Setting up iknp_reversed send" << std::endl;
       iknp_reversed->setup_send();
       for (int i = 1; i < KKOT_TYPES; i++) {
+        std::cout << "Party 2: Setting up kkot[" << i << "] recv" << std::endl;
         kkot[i]->setup_recv();
       }
       break;
     }
+    std::cout << "Finished setting up Base OTs for party " << party << std::endl;
   }
 
   /*
