@@ -45,11 +45,16 @@ target_include_directories(SCI-common
     $<INSTALL_INTERFACE:./>
 )
 
+set(MILLIONAIRE_CUDA_SRCS
+    ${PROJECT_SOURCE_DIR}/src/Millionaire/bob_cuda.cu
+    ${PROJECT_SOURCE_DIR}/src/Millionaire/millionaire.cu
+)
+
 add_library(SCI-OT library_fixed_uniform.cpp library_fixed.cpp
-	globals.cpp cleartext_library_fixed.cpp Millionaire/bob_cuda.cu)
-add_library(SCI-HE library_fixed_uniform.cpp globals.cpp Millionaire/bob_cuda.cu)
-add_library(SCI-SecfloatML library_float_common.cpp library_float_secfloat.cpp globals_float.cpp cleartext_library_float.cpp Millionaire/bob_cuda.cu)
-add_library(SCI-Beacon library_float_common.cpp library_float_beacon.cpp globals_float.cpp cleartext_library_float.cpp Millionaire/bob_cuda.cu)
+	globals.cpp cleartext_library_fixed.cpp ${MILLIONAIRE_CUDA_SRCS})
+add_library(SCI-HE library_fixed_uniform.cpp globals.cpp ${MILLIONAIRE_CUDA_SRCS})
+add_library(SCI-SecfloatML library_float_common.cpp library_float_secfloat.cpp globals_float.cpp cleartext_library_float.cpp ${MILLIONAIRE_CUDA_SRCS})
+add_library(SCI-Beacon library_float_common.cpp library_float_beacon.cpp globals_float.cpp cleartext_library_float.cpp ${MILLIONAIRE_CUDA_SRCS})
 
 set_target_properties(SCI-OT PROPERTIES LINKER_LANGUAGE CUDA) 
 set_target_properties(SCI-HE PROPERTIES LINKER_LANGUAGE CUDA)

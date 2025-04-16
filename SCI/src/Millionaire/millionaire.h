@@ -30,6 +30,11 @@ SOFTWARE.
 #define MILL_PARAM 4
 #define WAN_EXEC
 
+extern "C" void execute_set_leaf(int num_cmps, uint8_t *ot_messages,
+                                 uint8_t digit, int N,
+                                 uint8_t mask_cmp, uint8_t mask_eq,
+                                 bool greater_than, bool eq = true);
+
 class MillionaireProtocol {
 public:
   sci::IOPack *iopack;
@@ -166,27 +171,44 @@ public:
       for (int i = 0; i < num_digits; i++) {
         for (int j = 0; j < num_cmps; j++) {
           if (i == 0) {
-            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
+                             digits[i * num_cmps + j], beta_pow,
+                             leaf_res_cmp[i * num_cmps + j], 0,
+                             greater_than, false);
+/*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j], 0,
-                                 greater_than, false);
+                                 greater_than, false); */
+
           } else if (i == (num_digits - 1) && (r > 0)) {
 #ifdef WAN_EXEC
-            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
+                             digits[i * num_cmps + j], beta_pow,
+                             leaf_res_cmp[i * num_cmps + j],
+                             leaf_res_eq[i * num_cmps + j], greater_than);
+/*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j],
-                                 leaf_res_eq[i * num_cmps + j], greater_than);
+                                 leaf_res_eq[i * num_cmps + j], greater_than);*/
 #else
-            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
+                             digits[i * num_cmps + j], 1 << r,
+                             leaf_res_cmp[i * num_cmps + j],
+                             leaf_res_eq[i * num_cmps + j], greater_than);
+/*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], 1 << r,
                                  leaf_res_cmp[i * num_cmps + j],
-                                 leaf_res_eq[i * num_cmps + j], greater_than);
+                                 leaf_res_eq[i * num_cmps + j], greater_than);*/
 #endif
           } else {
-            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
+                             digits[i * num_cmps + j], beta_pow,
+                             leaf_res_cmp[i * num_cmps + j],
+                             leaf_res_eq[i * num_cmps + j], greater_than);
+/*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j],
-                                 leaf_res_eq[i * num_cmps + j], greater_than);
+                                 leaf_res_eq[i * num_cmps + j], greater_than);*/
           }
         }
       }

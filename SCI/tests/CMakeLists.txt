@@ -1,5 +1,7 @@
 macro (add_test_OT _name)
-	set(cuda_src "${PROJECT_SOURCE_DIR}/src/Millionaire/bob_cuda.cu")
+	set(cuda_src
+        "${PROJECT_SOURCE_DIR}/src/Millionaire/bob_cuda.cu"
+        "${PROJECT_SOURCE_DIR}/src/Millionaire/millionaire.cu")
 	add_executable(${_name}-OT "test_ring_${_name}.cpp" ${cuda_src})
 
 	set_target_properties(${_name}-OT PROPERTIES
