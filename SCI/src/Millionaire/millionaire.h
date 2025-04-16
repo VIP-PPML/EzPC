@@ -26,6 +26,7 @@ SOFTWARE.
 #include "utils/emp-tool.h"
 #include <cmath>
 #include <omp.h>
+#include <chrono>
 
 #define MILL_PARAM 4
 #define WAN_EXEC
@@ -171,10 +172,15 @@ public:
       for (int i = 0; i < num_digits; i++) {
         for (int j = 0; j < num_cmps; j++) {
           if (i == 0) {
+            auto start = std::chrono::high_resolution_clock::now();
             execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
                              digits[i * num_cmps + j], beta_pow,
                              leaf_res_cmp[i * num_cmps + j], 0,
                              greater_than, false);
+            auto end = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double, std::micro> time_elapsed = end - start;
+            std::cout << time_elapsed.count() << " ms in set_leaf_ot" << std::endl;
+
 /*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j], 0,
@@ -182,29 +188,46 @@ public:
 
           } else if (i == (num_digits - 1) && (r > 0)) {
 #ifdef WAN_EXEC
+            auto start = std::chrono::high_resolution_clock::now();
             execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
                              digits[i * num_cmps + j], beta_pow,
                              leaf_res_cmp[i * num_cmps + j],
                              leaf_res_eq[i * num_cmps + j], greater_than);
+            auto end = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double, std::micro> time_elapsed = end - start;
+            std::cout << time_elapsed.count() << " ms in set_leaf_ot" << std::endl;
+
 /*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j],
                                  leaf_res_eq[i * num_cmps + j], greater_than);*/
 #else
+            auto start = std::chrono::high_resolution_clock::now();
+
             execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
                              digits[i * num_cmps + j], 1 << r,
                              leaf_res_cmp[i * num_cmps + j],
                              leaf_res_eq[i * num_cmps + j], greater_than);
+            auto end = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double, std::micro> time_elapsed = end - start;
+            std::cout << time_elapsed.count() << " ms in set_leaf_ot" << std::endl;
+
 /*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], 1 << r,
                                  leaf_res_cmp[i * num_cmps + j],
                                  leaf_res_eq[i * num_cmps + j], greater_than);*/
 #endif
           } else {
+            auto start = std::chrono::high_resolution_clock::now();
+
             execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
                              digits[i * num_cmps + j], beta_pow,
                              leaf_res_cmp[i * num_cmps + j],
                              leaf_res_eq[i * num_cmps + j], greater_than);
+            auto end = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double, std::micro> time_elapsed = end - start;
+            std::cout << time_elapsed.count() << " ms in set_leaf_ot" << std::endl;
+
 /*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j],
