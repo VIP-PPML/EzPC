@@ -94,7 +94,7 @@ __global__ void set_leaf_ot_messages_two(int num_digits, int num_cmps, int beta_
     }
 }
 
-extern "C" void execute_set_leaf_loops(int num_digits, int num_cmps, int beta_pow, uint8_t **all_leaf_ot_messages, uint8_t *digits, uint8_t *leaf_res_cmp, uint8_t *leaf_res_eq,
+extern "C" void execute_set_leaf_loops(int num_digits, int num_cmps, int beta_pow, uint8_t *all_leaf_ot_messages, uint8_t *digits, uint8_t *leaf_res_cmp, uint8_t *leaf_res_eq,
                                        bool greater_than)
 {
 
@@ -102,13 +102,7 @@ extern "C" void execute_set_leaf_loops(int num_digits, int num_cmps, int beta_po
     size_t total_size = num_digits * num_cmps * beta_pow * sizeof(uint8_t);
     uint8_t *all_leaf_ot_messages_dev;
     cudaMalloc(&all_leaf_ot_messages_dev, total_size);
-
-    for (int i = 0; i < num_digits * num_cmps; i++)
-    {
-        // copy data for each leaf_ot_messages[i]
-        cudaMemcpy(all_leaf_ot_messages_dev + i * beta_pow, all_leaf_ot_messages[i],
-                   beta_pow * sizeof(uint8_t), cudaMemcpyHostToDevice);
-    }
+    cudaMemcpy(all_leaf_ot_messages_dev, all_leaf_ot_messages, total_size, cudaMemcpyHostToDevice); // all_leaf_ot_messages is also flat
 
     // allocate space and copy digits array to GPU
     uint8_t *dev_digits;
@@ -135,11 +129,7 @@ extern "C" void execute_set_leaf_loops(int num_digits, int num_cmps, int beta_po
                                                              dev_digits, dev_leaf_res_cmp, dev_leaf_res_eq, greater_than);
 
     // Copy leaf_ot_messages back to host
-    for (int i = 0; i < num_digits * num_cmps; i++)
-    {
-        cudaMemcpy(all_leaf_ot_messages[i], all_leaf_ot_messages_dev + i * beta_pow,
-                   beta_pow * sizeof(uint8_t), cudaMemcpyDeviceToHost);
-    }
+    cudaMemcpy(all_leaf_ot_messages, all_leaf_ot_messages_dev, total_size, cudaMemcpyDeviceToHost);
 
     // cleanup
     cudaFree(all_leaf_ot_messages_dev);
