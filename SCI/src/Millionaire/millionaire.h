@@ -35,6 +35,11 @@ extern "C" void execute_set_leaf(int num_cmps, uint8_t *ot_messages,
                                  uint8_t mask_cmp, uint8_t mask_eq,
                                  bool greater_than, bool eq = true);
 
+extern "C" void execute_set_leaf_loops(int num_digits, int num_cmps,
+                                       int beta_pow, uint8_t **all_leaf_ot_messages,
+                                       uint8_t *digits, uint8_t *leaf_res_cmp,
+                                       uint8_t *leaf_res_eq,bool greater_than);
+
 class MillionaireProtocol {
 public:
   sci::IOPack *iopack;
@@ -168,50 +173,39 @@ public:
       // Set Leaf OT messages
       triple_gen->prg->random_bool((bool *)leaf_res_cmp, num_digits * num_cmps);
       triple_gen->prg->random_bool((bool *)leaf_res_eq, num_digits * num_cmps);
+
+      execute_set_leaf_loops(num_digits, num_cmps, beta_pow, leaf_ot_messages, digits, leaf_res_cmp, leaf_res_eq, greater_than);
+
+/*
       for (int i = 0; i < num_digits; i++) {
         for (int j = 0; j < num_cmps; j++) {
           if (i == 0) {
-            execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
-                             digits[i * num_cmps + j], beta_pow,
-                             leaf_res_cmp[i * num_cmps + j], 0,
-                             greater_than, false);
-/*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j], 0,
-                                 greater_than, false); */
+                                 greater_than, false);
 
           } else if (i == (num_digits - 1) && (r > 0)) {
 #ifdef WAN_EXEC
-            execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
-                             digits[i * num_cmps + j], beta_pow,
-                             leaf_res_cmp[i * num_cmps + j],
-                             leaf_res_eq[i * num_cmps + j], greater_than);
-/*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j],
-                                 leaf_res_eq[i * num_cmps + j], greater_than);*/
+                                 leaf_res_eq[i * num_cmps + j], greater_than);
 #else
-            execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
-                             digits[i * num_cmps + j], 1 << r,
-                             leaf_res_cmp[i * num_cmps + j],
-                             leaf_res_eq[i * num_cmps + j], greater_than);
-/*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], 1 << r,
                                  leaf_res_cmp[i * num_cmps + j],
-                                 leaf_res_eq[i * num_cmps + j], greater_than);*/
+                                 leaf_res_eq[i * num_cmps + j], greater_than);
 #endif
           } else {
-            execute_set_leaf(num_cmps, leaf_ot_messages[i * num_cmps + j],
-                             digits[i * num_cmps + j], beta_pow,
-                             leaf_res_cmp[i * num_cmps + j],
-                             leaf_res_eq[i * num_cmps + j], greater_than);
-/*            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
+            set_leaf_ot_messages(leaf_ot_messages[i * num_cmps + j],
                                  digits[i * num_cmps + j], beta_pow,
                                  leaf_res_cmp[i * num_cmps + j],
-                                 leaf_res_eq[i * num_cmps + j], greater_than);*/
+                                 leaf_res_eq[i * num_cmps + j], greater_than);
           }
         }
       }
+*/
 
       // Perform Leaf OTs
 #ifdef WAN_EXEC
