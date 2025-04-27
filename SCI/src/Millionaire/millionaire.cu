@@ -51,7 +51,7 @@ extern "C" void execute_set_leaf(int num_cmps, uint8_t *ot_messages, uint8_t dig
     cudaFree(ot_messages_dev);
 }
 
-__global__ void set_leaf_ot_messages_two(int num_digits, int num_cmps, int beta_pow, uint8_t **all_leaf_ot_messages, uint8_t *digits, uint8_t *leaf_res_cmp, uint8_t *leaf_res_eq,
+__global__ void set_leaf_ot_messages_two(int num_digits, int num_cmps, int beta_pow, uint8_t *all_leaf_ot_messages, uint8_t *digits, uint8_t *leaf_res_cmp, uint8_t *leaf_res_eq,
                                          bool greater_than)
 {
 
@@ -69,24 +69,27 @@ __global__ void set_leaf_ot_messages_two(int num_digits, int num_cmps, int beta_
         int j = (index / Z) % Y;
         int k = index % Z;
 
-        uint8_t *ot_messages = all_leaf_ot_messages[i * num_cmps + j];
+        // compute start of 'row'
+        int base_index = (i * num_cmps + j) * beta_pow;
+        int full_index = base_index + k; // actual position
+
         uint8_t digit = digits[i * num_cmps + j];
         uint8_t mask_cmp = leaf_res_cmp[i * num_cmps + j];
 
         if (greater_than)
         {
-            ot_messages[k] = ((digit > k) ^ mask_cmp);
+            all_leaf_ot_messages[full_index] = ((digit > k) ^ mask_cmp);
         }
         else
         {
-            ot_messages[k] = ((digit < k) ^ mask_cmp);
+            all_leaf_ot_messages[full_index] = ((digit < k) ^ mask_cmp);
         }
 
         if (i != 0)
         {
             uint8_t mask_eq = leaf_res_eq[i * num_cmps + j];
             bool eq = true;
-            ot_messages[k] = (ot_messages[k] << 1) | ((digit == k) ^ mask_eq);
+            all_leaf_ot_messages[full_index] = (all_leaf_ot_messages[full_index] << 1) | ((digit == k) ^ mask_eq);
         }
     }
 }
@@ -96,23 +99,16 @@ extern "C" void execute_set_leaf_loops(int num_digits, int num_cmps, int beta_po
 {
 
     // Allocate GPU memory for all_leaf_ot_messages (2D array)
-    uint8_t **all_leaf_ot_messages_dev;
-    cudaMalloc(&all_leaf_ot_messages_dev, num_digits * num_cmps * sizeof(uint8_t *));
-
-    // temporary host array to store device array ptrs
-    uint8_t **leaf_ot_messages_dev_ptrs = new uint8_t *[num_digits * num_cmps];
+    size_t total_size = num_digits * num_cmps * beta_pow * sizeof(uint8_t);
+    uint8_t *all_leaf_ot_messages_dev;
+    cudaMalloc(&all_leaf_ot_messages_dev, total_size);
 
     for (int i = 0; i < num_digits * num_cmps; i++)
     {
-        // allocate buffer for each leaf_ot_messages[i]
-        cudaMalloc(&leaf_ot_messages_dev_ptrs[i], beta_pow * sizeof(uint8_t));
-        cudaMemcpy(leaf_ot_messages_dev_ptrs[i], all_leaf_ot_messages[i],
+        // copy data for each leaf_ot_messages[i]
+        cudaMemcpy(all_leaf_ot_messages_dev + i * beta_pow, all_leaf_ot_messages[i],
                    beta_pow * sizeof(uint8_t), cudaMemcpyHostToDevice);
     }
-
-    // copy array of device pointers to GPU (finish creating 2D leaf_ot_messages array)
-    cudaMemcpy(all_leaf_ot_messages_dev, leaf_ot_messages_dev_ptrs,
-               num_digits * num_cmps * sizeof(uint8_t *), cudaMemcpyHostToDevice);
 
     // allocate space and copy digits array to GPU
     uint8_t *dev_digits;
@@ -141,14 +137,12 @@ extern "C" void execute_set_leaf_loops(int num_digits, int num_cmps, int beta_po
     // Copy leaf_ot_messages back to host
     for (int i = 0; i < num_digits * num_cmps; i++)
     {
-        cudaMemcpy(all_leaf_ot_messages[i], leaf_ot_messages_dev_ptrs[i],
+        cudaMemcpy(all_leaf_ot_messages[i], all_leaf_ot_messages_dev + i * beta_pow,
                    beta_pow * sizeof(uint8_t), cudaMemcpyDeviceToHost);
-        cudaFree(leaf_ot_messages_dev_ptrs[i]);
     }
 
     // cleanup
     cudaFree(all_leaf_ot_messages_dev);
-    delete[] leaf_ot_messages_dev_ptrs; // free temp array
 
     cudaFree(dev_digits);
     cudaFree(dev_leaf_res_cmp);
